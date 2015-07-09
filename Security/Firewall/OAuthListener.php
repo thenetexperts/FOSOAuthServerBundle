@@ -11,6 +11,7 @@
 
 namespace FOS\OAuthServerBundle\Security\Firewall;
 
+use FOS\OAuthServerBundle\Event\OAuthLoginEvent;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,6 +72,10 @@ class OAuthListener implements ListenerInterface
             $returnValue = $this->authenticationManager->authenticate($token);
 
             if ($returnValue instanceof TokenInterface) {
+                // dispatch login event
+                $loginEvent = new OAuthLoginEvent($token->getUser(), $event->getRequest());
+                $event->getDispatcher()->dispatch(OAuthLoginEvent::LOGIN, $loginEvent);
+
                 return $this->securityContext->setToken($returnValue);
             }
 
